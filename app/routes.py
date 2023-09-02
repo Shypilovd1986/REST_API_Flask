@@ -1,61 +1,83 @@
 from flask import jsonify, request
 from app import app
-from app.models.models import session
-
-tutorial = [
-    {'id': 1,
-     'name': 'Intro',
-     'description': 'Get, Post routes'},
-    {'id': 2,
-     'name': 'More feature',
-     'description': 'Put, Delete routes'}
-]
+from app.models.models import session, Student, EnglishWord
 
 
-@app.route("/tutorial", methods=['GET'])
+@app.route("/list_of_student", methods=['GET'])
 def get_tutorial():
-    return jsonify(tutorial)
+    """for getting all students"""
+    students = Student.query.all()
+    serialized = []
+    for student in students:
+        serialized.append({
+            'id': student.user_id,
+            'name': student.user_name,
+            'surname': student.user_surname,
+            'email': student.email
+        })
+
+    return jsonify(serialized)
+
+#                       testing in command line
 # from app import app, test_client
-# res = test_client.get('/tutorial')
+# res = test_client.get('/list_of_student')
 # res.get_json()
 
 
-@app.route("/tutorial", methods=['POST'])
+@app.route("/registration", methods=['POST'])
 def add_tutorial():
-    """function for adding tutorial"""
-    new_tutorial = request.json
-    tutorial.append(new_tutorial)
-    return jsonify(tutorial)
+    """function for registration student"""
+    new_student = Student(**request.json)
+    session.add(new_student)
+    session.commit()
+    serialized = {
+        'id': new_student.user_id,
+        'name': new_student.user_name,
+        'surname': new_student.user_surname,
+        'email': new_student.email
+    }
+    return jsonify(serialized)
 
-# res = test_client.post('/tutorial',
+# res = test_client.post('/registration',
 # json= {'name':'practise in terminal', 'description':'run test client'})
-# res = test_client.get('/tutorial')
+# res = test_client.get('/list_of_student')
 # res.status_code
 
 
-@app.route("/tutorial/<int:tutorial_id>", methods=['PUT'])
-def update_tutorial(tutorial_id):
-    """for updating data in tutorial"""
-    item = next((x for x in tutorial if x['id'] == tutorial_id), None)
+@app.route("/personal_information/<int:student_id>", methods=['PUT'])
+def update_tutorial(student_id):
+    """for editing information about student"""
+    student = Student.query.filter(Student.user_id == student_id).first()
     params = request.json
-    if not item:
-        return {'message': 'No tutorials with this id'}, 400
-    item.update(params)
-    return item
+    if not student:
+        return {'message': 'This student did not registered in db'}, 400
+    for key, value in params.items():
+        setattr(student, key, value)
+    session.commit()
+    serialized = {
+        'id': student.user_id,
+        'name': student.user_name,
+        'surname': student.user_surname,
+        'email': student.email
+    }
+    return jsonify(serialized)
 
 # from app import test_client
-# res = test_client.put('/tutorial/2', json = {'description': 'Put route'})
+# res = test_client.put('/personal_information/2', json = {......})
 # res.status_code
 
 
-@app.route('/tutorial/<int:tutorial_id>', methods=['DELETE'])
-def delete_tutorial(tutorial_id):
-    """for deleting tutorial"""
-    idx, _ = next((x for x in enumerate(tutorial) if x[1]['id'] == tutorial_id), (None, None))
-    tutorial.pop(idx)
+@app.route('/personal_information/<int:student_id>', methods=['DELETE'])
+def delete_tutorial(student_id):
+    """for deleting student"""
+    student = Student.query.filter(Student.user_id == student_id).first()
+    if not student:
+        return {'message': 'This student did not registered in db'}, 400
+    session.delete(student)
+    session.commit()
     return '', 204
 # from app import test_client
-# res = test_client.delete('/tutorial/1')
+# res = test_client.delete('/personal_information/1')
 # res.status_code
 
 
