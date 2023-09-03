@@ -1,0 +1,14 @@
+- installed flask_jwt_extended   for creating token
+- installed pathlib for manipulating with path, it's like module os.path
+- installed bcrypt ,
+bcrypt — адаптивная криптографическая хеш-функция формирования ключа, используемая для защищенного хранения паролей.
+- installed passlib, Passlib is a password hashing library for Python 2 & 3, which provides cross-platform
+implementations of over 30 password hashing algorithms, as well
+- from passlib.hash import bcrypt,  bcrypt.hash('password') return hash-password
+- bcrypt.verify(input-password, hash-check-password) return True if password equal
+- import uuid in terminal , uuid.uuid4().hex   will generate random hex number
+- from flask_jwt_extended import jwt_required   its decorator, if route has this decorator user cannot open
+route without jwt token
+- from flask_jwt_extended import get_jwt_identity ,  get_jwt_identity()  will return identity which creates this
+token, work only with route which has jwt_required decorator
+-

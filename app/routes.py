@@ -1,9 +1,11 @@
 from flask import jsonify, request
 from app import app
 from app.models.models import session, Student, EnglishWord
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
-@app.route("/list_of_student", methods=['GET'])
+@app.route("/list_of_students", methods=['GET'])
+@jwt_required()
 def get_tutorial():
     """for getting all students"""
     students = Student.query.all()
@@ -15,28 +17,44 @@ def get_tutorial():
             'surname': student.user_surname,
             'email': student.email
         })
-
     return jsonify(serialized)
 
 #                       testing in command line
 # from app import app, test_client
-# res = test_client.get('/list_of_student')
+# res = test_client.get('/list_of_students', headers = {'Authorization': 'valid token'})
 # res.get_json()
 
 
 @app.route("/registration", methods=['POST'])
-def add_tutorial():
+def student_registration():
     """function for registration student"""
-    new_student = Student(**request.json)
+    params = request.json
+    new_student = Student(**params)
     session.add(new_student)
     session.commit()
-    serialized = {
-        'id': new_student.user_id,
-        'name': new_student.user_name,
-        'surname': new_student.user_surname,
-        'email': new_student.email
-    }
-    return jsonify(serialized)
+    token = new_student.get_token()
+    return {'access token: ': token}
+
+
+@app.route("/add_new_word", methods=['POST'])
+@jwt_required()
+def adding_new_word():
+    """function for adding new word"""
+    params = request.json
+    id_student = get_jwt_identity()
+    new_word = EnglishWord(user_id=id_student, **params)
+
+    session.add(new_word)
+    session.commit()
+    return {'word: ': 'added'}
+
+
+@app.route('/login', methods=['POST'])
+def login_student():
+    params = request.json
+    user = Student.authenticate(**params)
+    token = user.get_token()
+    return {'access token: ': token}
 
 # res = test_client.post('/registration',
 # json= {'name':'practise in terminal', 'description':'run test client'})
@@ -45,9 +63,11 @@ def add_tutorial():
 
 
 @app.route("/personal_information/<int:student_id>", methods=['PUT'])
+@jwt_required()
 def update_tutorial(student_id):
     """for editing information about student"""
-    student = Student.query.filter(Student.user_id == student_id).first()
+    student_id_token = get_jwt_identity()
+    student = Student.query.filter(Student.user_id == student_id, Student.user_id == student_id).first()
     params = request.json
     if not student:
         return {'message': 'This student did not registered in db'}, 400
@@ -68,9 +88,11 @@ def update_tutorial(student_id):
 
 
 @app.route('/personal_information/<int:student_id>', methods=['DELETE'])
+@jwt_required()
 def delete_tutorial(student_id):
     """for deleting student"""
-    student = Student.query.filter(Student.user_id == student_id).first()
+    student_id_token = get_jwt_identity()
+    student = Student.query.filter(Student.user_id == student_id, Student.user_id == student_id_token).first()
     if not student:
         return {'message': 'This student did not registered in db'}, 400
     session.delete(student)

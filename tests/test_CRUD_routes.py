@@ -9,7 +9,7 @@ def test_simple():
 
 
 def test_get_route():
-    res = test_client.get('/list_of_student')
+    res = test_client.get('/list_of_students')
     assert res.status_code == 200
     # assert len(res.get_json()) == 2
 
