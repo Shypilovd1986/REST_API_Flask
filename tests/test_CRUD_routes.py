@@ -1,4 +1,4 @@
-from app import app, test_client
+from app import test_client
 from app.models.models import Student
 
 
@@ -34,6 +34,6 @@ def test_put_route():
 
 
 def test_delete_route():
-    res = test_client.delete('/personal_information/6')
+    res = test_client.delete('/personal_information/7')
     assert res.status_code == 204
     assert Student.query.get(6) is None
