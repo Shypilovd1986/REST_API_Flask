@@ -6,7 +6,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 @app.route("/list_of_students", methods=['GET'])
 @jwt_required()
-def get_tutorial():
+def get_list_of_student():
     """for getting all students"""
     students = Student.query.all()
     serialized = []
